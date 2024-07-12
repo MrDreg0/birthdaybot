@@ -1,0 +1,10 @@
+﻿services:
+  birthdaybot:
+    image: birthdaybot.app:0.0.0.1
+    build:
+      context: .
+      dockerfile: BirthdayBot.App/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+    ports:
+      - 5000:8080
