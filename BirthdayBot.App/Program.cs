@@ -5,6 +5,7 @@ using BirthdayBot.App.Models;
 using BirthdayBot.App.Settings;
 using BirthdayBot.Database;
 using BirthdayBot.Database.Initialization;
+using NLog.Web;
 using Telegram.Bot;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +38,12 @@ builder.Services.AddAutoMapper(
 builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Logging.ClearProviders();
+builder.Host.UseNLog(new NLogAspNetCoreOptions()
+{
+  ReplaceLoggerFactory = true
+});
 
 var app = builder.Build();
 

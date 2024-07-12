@@ -1,4 +1,5 @@
-﻿using BirthdayBot.App.Handlers;
+﻿using System.Text.Json;
+using BirthdayBot.App.Handlers;
 using BirthdayBot.App.Settings;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -12,7 +13,8 @@ namespace BirthdayBot.App.Controllers;
 public class TelegramBotController(
   ITelegramBotClient botClient,
   IUpdateHandler updateHandler,
-  IOptions<BotConfig> botConfig)
+  IOptions<BotConfig> botConfig,
+  ILogger<TelegramBotController> logger)
   : ControllerBase
 {
   private readonly BotConfig _botConfig = botConfig.Value;
@@ -22,6 +24,11 @@ public class TelegramBotController(
   {
     if (Request.Headers["X-Telegram-Bot-Api-Secret-Token"] != _botConfig.SecretToken)
     {
+      logger.LogWarning(
+        "Несанкционированный запрос с ip {IP} и данными '{RequestMessage}'.",
+        Request.HttpContext.Connection.RemoteIpAddress,
+        update?.Message?.Text ?? JsonSerializer.Serialize(update));
+
       return Ok();
     }
 
