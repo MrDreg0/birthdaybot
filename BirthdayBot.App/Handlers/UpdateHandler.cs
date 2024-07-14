@@ -1,4 +1,5 @@
 ﻿using BirthdayBot.App.Adapters;
+using BirthdayBot.Exceptions;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -13,6 +14,7 @@ public class UpdateHandler(
 {
   private const string AddBirthdayCommand = "/addbirthday";
   private const string GetBirthdayCommand = "/getbirthday";
+  private const string UpdateBirthdayCommand = "/updatebirthday";
 
   public async Task HandleUpdateAsync(Update update)
   {
@@ -25,16 +27,15 @@ public class UpdateHandler(
 
   private async Task OnMessage(Message msg)
   {
-    switch (msg.Text)
+    if (msg.Text is { } messageText)
     {
-      case { } messageText:
-        await (messageText.Split(' ')[0] switch
-        {
-          AddBirthdayCommand => OnAddBirthday(msg),
-          GetBirthdayCommand => OnGetBirthday(msg),
-          _ => Usage(msg)
-        });
-        break;
+      await (messageText.Split(' ')[0] switch
+      {
+        AddBirthdayCommand => OnAddBirthday(msg),
+        GetBirthdayCommand => OnGetBirthday(msg),
+        UpdateBirthdayCommand => OnUpdateBirthday(msg),
+        _ => Usage(msg)
+      });
     }
   }
 
@@ -45,6 +46,7 @@ public class UpdateHandler(
          <b>Bot menu</b>:
           {AddBirthdayCommand} - add birthday
           {GetBirthdayCommand} - get birthday
+          {UpdateBirthdayCommand} - update birthday
        """;
 
     return await botClient.SendTextMessageAsync(
@@ -75,7 +77,14 @@ public class UpdateHandler(
       Birthday = parts[4]
     };
 
-    await botAdapter.AddUserAsync(user);
+    try
+    {
+      await botAdapter.AddUserAsync(user);
+    }
+    catch (UserAlreadyExistsException ex)
+    {
+      return await botClient.SendTextMessageAsync(msg.Chat.Id, ex.Message + " " + "For update use /updatebirthday");
+    }
 
     return await botClient.SendTextMessageAsync(msg.Chat.Id, "Birthday added!");
   }
@@ -128,6 +137,53 @@ public class UpdateHandler(
         
          <b>Example</b>:
            <code>{GetBirthdayCommand} johndoe</code>
+       """;
+
+    return await botClient.SendTextMessageAsync(
+      msg.Chat,
+      usage,
+      parseMode: ParseMode.Html,
+      replyMarkup: new ReplyKeyboardRemove());
+  }
+
+  private async Task<Message> OnUpdateBirthday(Message msg)
+  {
+    if (msg.Text is not { } messageText)
+    {
+      return await Usage(msg);
+    }
+
+    var parts = messageText.Split(' ');
+
+    if (parts.Length is not 5)
+    {
+      return await UpdateBirthdayUsage(msg);
+    }
+
+    try
+    {
+      await botAdapter.UpdateUserAsync(parts[1], parts[2] + parts[3], parts[4]);
+    }
+    catch (UserNotFoundException ex)
+    {
+      return await botClient.SendTextMessageAsync(msg.Chat.Id, ex.Message + " " + "For add use /addbirthday");
+    }
+
+    return await botClient.SendTextMessageAsync(msg.Chat.Id, "Birthday updated!");
+  }
+
+  private async Task<Message> UpdateBirthdayUsage(Message msg)
+  {
+    const string usage =
+      $"""
+         <b>Update Birthday usage</b>:
+         {UpdateBirthdayCommand} <i>login</i> <i>name</i> <i>lastname</i> <i>dd/mm/yyyy</i>
+        
+         <b>Attention</b>:
+           User with <i>login</i> should exist.
+        
+         <b>Example</b>:
+           <code>{UpdateBirthdayCommand} johndoe John Doe 01/01/2000</code>
        """;
 
     return await botClient.SendTextMessageAsync(

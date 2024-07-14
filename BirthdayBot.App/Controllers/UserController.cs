@@ -35,4 +35,14 @@ public class UserController : Controller
 
     return _mapper.Map<Participant>(domainUser);
   }
+
+  [HttpPut("{login}")]
+  public async Task<IActionResult> UpdateUser([FromBody] PatchParticipant patchParticipant, string login)
+  {
+    var domainBirthday = _mapper.Map<Domain.Birthday>(patchParticipant.Birthday);
+
+    await _userService.UpdateUserAsync(login, patchParticipant.Name, domainBirthday);
+
+    return Ok();
+  }
 }

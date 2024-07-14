@@ -28,4 +28,11 @@ public class TelegramBotAdapter : ITelegramBotAdapter
 
     return _mapper.Map<Participant>(domainUser);
   }
+
+  public Task UpdateUserAsync(string login, string name, string birthday)
+  {
+    var domainBirthday = _mapper.Map<Domain.Birthday>(birthday);
+
+    return _userService.UpdateUserAsync(login, name, domainBirthday);
+  }
 }

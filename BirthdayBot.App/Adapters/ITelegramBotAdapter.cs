@@ -7,4 +7,6 @@ public interface ITelegramBotAdapter
   Task AddUserAsync(Participant participant);
 
   Task<Participant> GetUserAsync(string login);
+
+  Task UpdateUserAsync(string login, string name, string birthday);
 }
