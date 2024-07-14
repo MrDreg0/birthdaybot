@@ -29,15 +29,19 @@ public class TelegramBotController(
         Request.HttpContext.Connection.RemoteIpAddress,
         update?.Message?.Text ?? JsonSerializer.Serialize(update));
 
+      return NoContent();
+    }
+
+    if (update.Message?.Text != null)
+    {
+      await updateHandler.HandleUpdateAsync(update);
+
       return Ok();
     }
 
-    if (update?.Message?.Text != null)
-    {
-      await updateHandler.HandleUpdateAsync(update);
-    }
+    logger.LogWarning("Необработанный запрос: {RequestMessage}", update.Message);
 
-    return Ok();
+    return NoContent();
   }
 
   [HttpPost("webhook")]
