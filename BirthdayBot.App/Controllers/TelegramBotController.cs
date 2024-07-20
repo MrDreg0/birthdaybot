@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace BirthdayBot.App.Controllers;
 
@@ -32,16 +33,9 @@ public class TelegramBotController(
       return NoContent();
     }
 
-    if (update.Message?.Text != null)
-    {
-      await updateHandler.HandleUpdateAsync(update);
+    await updateHandler.HandleUpdateAsync(update);
 
-      return Ok();
-    }
-
-    logger.LogWarning("Необработанный запрос: {RequestMessage}", update.Message);
-
-    return NoContent();
+    return Ok();
   }
 
   [HttpPost("webhook")]

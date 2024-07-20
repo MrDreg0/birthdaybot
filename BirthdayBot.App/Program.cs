@@ -21,8 +21,12 @@ builder.Services
  .AddScoped<IUserRepository, UserRepository>()
  .AddScoped<IUserService, UserService>()
  .AddScoped<ITelegramBotAdapter, TelegramBotAdapter>()
- .AddScoped<IUpdateHandler, UpdateHandler>()
  .AddDataContext();
+
+builder.Services
+ .AddScoped<IUpdateHandler, UpdateHandler>()
+ .AddScoped<IMessageCommandHandler, MessageCommandHandler>()
+ .AddScoped<IMessageTextCommandHandler, MessageTextCommandHandler>();
 
 builder.Services.AddHttpClient("telegram_bot_client")
  .AddTypedClient<ITelegramBotClient>(httpClient =>
