@@ -39,9 +39,9 @@ public class TelegramBotController(
   }
 
   [HttpPost("webhook")]
-  public async Task<IActionResult> SetWebhook([FromBody] string webhookUrl)
+  public async Task<IActionResult> SetWebhook([FromBody] string webhookUrl, [FromQuery]bool needDropPendingUpdates = false)
   {
-    await botClient.SetWebhookAsync(webhookUrl, secretToken: _botConfig.SecretToken);
+    await botClient.SetWebhookAsync(webhookUrl, secretToken: _botConfig.SecretToken, dropPendingUpdates: needDropPendingUpdates);
 
     return Ok($"Webhook set to '{webhookUrl}'");
   }
