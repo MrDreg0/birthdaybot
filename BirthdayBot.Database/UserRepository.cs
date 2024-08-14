@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using BirthdayBot.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Domain = BirthdayBot.Models;
 
@@ -24,7 +23,7 @@ public class UserRepository : IUserRepository
     await _context.SaveChangesAsync();
   }
 
-  public async Task<Domain.User> GetUserAsync(string login)
+  public async Task<Domain.User> TryGetUserAsync(string login)
   {
     var user = await _context.Users
       .Include(u => u.Birthday)
@@ -43,11 +42,6 @@ public class UserRepository : IUserRepository
     var user = await _context.Users
      .Include(u => u.Birthday)
      .FirstOrDefaultAsync(u => u.Login == login);
-
-    if (user == null)
-    {
-      throw new UserNotFoundException();
-    }
 
     user.Name = name;
     user.Birthday = _mapper.Map<Birthday>(birthday);

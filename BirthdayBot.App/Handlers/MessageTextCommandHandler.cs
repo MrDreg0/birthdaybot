@@ -78,7 +78,9 @@ public class MessageTextCommandHandler(
     }
     catch (UserAlreadyExistsException ex)
     {
-      return await botClient.SendTextMessageAsync(msg.Chat.Id, ex.Message + " " + "For update use /updatebirthday");
+      return await botClient.SendTextMessageAsync(
+        msg.Chat.Id,
+        $"{ex.Message} For update use {UpdateBirthdayCommand}.");
     }
 
     return await botClient.SendTextMessageAsync(msg.Chat.Id, "Birthday added!");
@@ -116,11 +118,18 @@ public class MessageTextCommandHandler(
       return await GetBirthdayUsage(msg);
     }
 
-    var birthday = await botAdapter.GetUserAsync(parts[1]);
+    try
+    {
+      var birthday = await botAdapter.GetUserAsync(parts[1]);
 
-    return await botClient.SendTextMessageAsync(
-      msg.Chat.Id,
-      $"Birthday {parts[1]} is {birthday.Birthday}");
+      return await botClient.SendTextMessageAsync(
+        msg.Chat.Id,
+        $"Birthday {parts[1]} is {birthday.Birthday}");
+    }
+    catch (UserNotFoundException ex)
+    {
+      return await HandleUserNotFoundExceptionAsync(msg, ex);
+    }
   }
 
   private async Task<Message> GetBirthdayUsage(Message msg)
@@ -161,7 +170,7 @@ public class MessageTextCommandHandler(
     }
     catch (UserNotFoundException ex)
     {
-      return await botClient.SendTextMessageAsync(msg.Chat.Id, ex.Message + " " + "For add use /addbirthday");
+      return await HandleUserNotFoundExceptionAsync(msg, ex);
     }
 
     return await botClient.SendTextMessageAsync(msg.Chat.Id, "Birthday updated!");
@@ -187,4 +196,12 @@ public class MessageTextCommandHandler(
       parseMode: ParseMode.Html,
       replyMarkup: new ReplyKeyboardRemove());
   }
+
+  private Task<Message> HandleUserNotFoundExceptionAsync(Message msg, UserNotFoundException ex)
+  {
+    return botClient.SendTextMessageAsync(
+      msg.Chat.Id,
+      $"{ex.ErrorMessage} For add use {AddBirthdayCommand}.");
+  }
+
 }

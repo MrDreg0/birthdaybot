@@ -6,7 +6,7 @@ public interface IUserRepository
 {
   Task AddUserAsync(User user);
 
-  Task<User> GetUserAsync(string login);
+  Task<User> TryGetUserAsync(string login);
 
   Task<bool> ExistsUserAsync(string login);
 

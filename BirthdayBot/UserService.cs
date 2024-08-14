@@ -3,43 +3,43 @@ using BirthdayBot.Models;
 
 namespace BirthdayBot;
 
-public class UserService : IUserService
+public class UserService(IUserRepository userRepository) : IUserService
 {
-  private readonly IUserRepository _userRepository;
-
-  public UserService(IUserRepository userRepository)
-  {
-    _userRepository = userRepository;
-  }
-
   public async Task AddUserAsync(User user)
   {
     // TODO добавить валидацию
 
-    var existingUser = await _userRepository.ExistsUserAsync(user.Login);
+    var existingUser = await userRepository.ExistsUserAsync(user.Login);
 
     if (existingUser)
     {
       throw new UserAlreadyExistsException();
     }
 
-    await _userRepository.AddUserAsync(user);
+    await userRepository.AddUserAsync(user);
   }
 
-  public Task<User> GetUserAsync(string login)
+  public async Task<User> GetUserAsync(string login)
   {
-    return _userRepository.GetUserAsync(login);
+    var user = await userRepository.TryGetUserAsync(login);
+
+    if (user is null)
+    {
+        throw new UserNotFoundException(login);
+    }
+
+    return user;
   }
 
   public async Task UpdateUserAsync(string login, string name, Birthday birthday)
   {
-    var existingUser = await _userRepository.ExistsUserAsync(login);
+    var existingUser = await userRepository.ExistsUserAsync(login);
 
     if (!existingUser)
     {
-      throw new UserNotFoundException();
+      throw new UserNotFoundException(login);
     }
 
-    await _userRepository.UpdateUserAsync(login, name, birthday);
+    await userRepository.UpdateUserAsync(login, name, birthday);
   }
 }
